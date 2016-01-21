@@ -50,7 +50,11 @@ import matplotlib
 if USES_PYSIDE:
     matplotlib.rcParams['backend.qt4']='PySide'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Toolbar
+try:
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Toolbar
+except ImportError:
+    # seems that matplotlib have changed the name in newer versions
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Toolbar
 # the following import is necessary for 3-D plots in matplotlib although it is
 #   not directly used
 from mpl_toolkits.mplot3d import Axes3D
@@ -249,7 +253,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                                  self._x_autoscale, self._y_autoscale)
         self._figure.tight_layout()
         self._canvas.draw()
-        
+
         # update animation background artists
         self._animated_background = self._canvas.copy_from_bbox(self._axes.bbox)
         for k in self._animated_artists:
@@ -802,7 +806,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                 #self._full_animated_redraw()
                 # PROBLEMS WITH VIEW RANGE IN ABOVE CODE
                 # BELOW WORKS BUT IS STILL NOT EFFICIENT
-                # SHOULD REWRITE FOR SPEED                
+                # SHOULD REWRITE FOR SPEED
                 if rescale or (data.shape[0] != shape) or (data.shape[1] != shape):
                     self._axes.relim()
                     item.autoscale()

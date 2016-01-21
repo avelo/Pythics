@@ -625,7 +625,7 @@ Options:
         for o, a in opts:
             if o in ('-v', '--verbose'):
                 self.logger.setLevel(logging.INFO)
-            elif o in ('"-d', '--debug'):
+            elif o in ('-d', '--debug'):
                 self.logger.setLevel(logging.DEBUG)
             elif o in ('-h', '--help'):
                 self.usage()
