@@ -33,6 +33,8 @@ Thomas Fechner, who added command-line lauching of Pythics.
 Ilana Gat, who contributed several feature enhancements.
 Alex Arsenovic, who wrote the initial Distutils intaller setup for Pythics.
 Richard Graham, who reorganized and greatly improved the docs.
+-
+Anton Velo <avelo@iim.csic.es>, update code for python 3.5 and Qt5
 
 
 Installation Requirements
@@ -40,10 +42,9 @@ Installation Requirements
 
 The following programs and libraries are required for Pythics to run:
 
-- Python 2.6.2 or later preferred; earlier versions lack the 
-  multiprocessing package
+- Python 3.5.4 or later
 
-- PyQt widget toolkit for GUI, version 4.5.4 or later
+- PyQt widget toolkit for GUI, version 5.6.2 or later
 
 
 The following libraries are strongly recommended for basic functionality in 
@@ -51,15 +52,17 @@ Pythics:
 
 - NumPy array support
 
+- pandas data analysis library
+
 - matplotlib plotting library
 
 
 The following libraries are optional for full functionality in Pythics:
 
-- python Imaging Library (PIL) - for image display support, (1.1.7 or later 
-  preferred)
+- python Imaging Library (PIL) - for image display support, (actually using
+  pillow fork 4.2.1)
 
-- PyQwt widgets for scientific and engineering applications  
+- Not updated to Qt5, so not aveliable -> PyQwt widgets for scientific and engineering applications  
 
 
 The following additional packages may be helpful for writing scientific code 
@@ -67,7 +70,7 @@ for Pythics:
 
 - PyVISA for communicating with VISA laboratory instruments
 
-- pySerial for communicating with laboratory instruments by RS-232
+- pySerial for communicating with laboratory instruments by RS-232 (>3.4 recommended)
 
 - SciPy for additional numerical processing routines
 
