@@ -52,7 +52,7 @@ class Slave(object):
         control_proxies = self.control_proxies
         master_to_slave_call_queue = self.master_to_slave_call_queue
         # reinitialize control proxies to give them access to master_to_slave_call_queue
-        for proxy in control_proxies.values():
+        for proxy in list(control_proxies.values()):
             if hasattr(proxy, '_start'):
                 proxy._start(self)
         # load required modules
@@ -91,7 +91,7 @@ class Slave(object):
             except:
                 logger.exception('Error in action process loop.')
         # shutting down, so cleanup
-        for proxy in control_proxies.values():
+        for proxy in list(control_proxies.values()):
             if hasattr(proxy, '_stop'):
                 proxy._stop()
         # delete the control_proxy dict, so proxies can clean up

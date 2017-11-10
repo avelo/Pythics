@@ -30,7 +30,7 @@ import multiprocessing
 import pickle
 import sys, traceback
 
-#from PyQt4 import QtGui
+#from PyQt5 import QtGui
 from pythics.settings import _TRY_PYSIDE
 try:
     if not _TRY_PYSIDE:
@@ -44,10 +44,13 @@ except ImportError:
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
-    import PyQt4.QtCore as _QtCore
-    import PyQt4.QtGui as _QtGui
+    import PyQt5.QtCore as _QtCore
+    import PyQt5.QtGui as _QtGui
+    import PyQt5.QtWidgets as _QtWidgets
+    import PyQt5.QtPrintSupport as QtPrintSupport
     QtCore = _QtCore
     QtGui = _QtGui
+    QtWidgets = _QtWidgets
     USES_PYSIDE = False
 
 
@@ -61,7 +64,7 @@ import pythics.master
 #   one for the whole application
 #   parent of all TabFrame instances
 #
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, master, app, parent=None, fixed_tabs=False):
         super(MainWindow, self).__init__(parent)
         # pythics data
@@ -70,9 +73,9 @@ class MainWindow(QtGui.QMainWindow):
         self.fixed_tabs = fixed_tabs
         self.workspace = ''
         # setup window basics
-        self.resize(900, 560)
+        self.resize(900, 640)
         self.setWindowTitle('Pythics')
-        self.clipboard = QtGui.QApplication.clipboard()
+        self.clipboard = QtWidgets.QApplication.clipboard()
         # set the corner icon
         icon = QtGui.QIcon(os.path.join(sys.path[0], 'pythics_icon.ico'))
         self.setWindowIcon(icon)
@@ -85,21 +88,21 @@ class MainWindow(QtGui.QMainWindow):
         # for printing later
         # high resolution printer give error when printing:
         #   QPainter::begin: Paint device returned engine == 0, type: 2
-        #self.printer = QtGui.QPrinter(QtGui.QPrinter.HighResolution)
-        self.printer = QtGui.QPrinter()
+        #self.printer = QtWidgets.QPrinter(QtWidgets.QPrinter.HighResolution)
+        self.printer = QtPrintSupport.QPrinter()
 
     def confirm_exit(self):
-        reply = QtGui.QMessageBox.question(self, 'Confirm',
-            'Are you sure you want to exit?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm',
+            'Are you sure you want to exit?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             return True
         else:
             return False
 
     def confirm_close(self):
-        reply = QtGui.QMessageBox.question(self, 'Confirm',
-            'Are you sure you want to close the VI?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm',
+            'Are you sure you want to close the VI?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             return True
         else:
             return False
@@ -113,14 +116,14 @@ class MainWindow(QtGui.QMainWindow):
             event.ignore()
 
     def new_status_bar(self):
-        self.status_text = QtGui.QLabel('')
+        self.status_text = QtWidgets.QLabel('')
         self.statusBar().addWidget(self.status_text, 1)
 
     def set_status_text(self, value):
         self.status_text.setText(value)
 
     def new_tab_frame(self):
-        self.tab_frame = QtGui.QTabWidget()
+        self.tab_frame = QtWidgets.QTabWidget()
         self.tab_frame.setDocumentMode(True)
         self.tab_frame.setTabsClosable(not self.fixed_tabs)
         self.tab_frame.setMovable(not self.fixed_tabs)
@@ -147,16 +150,15 @@ class MainWindow(QtGui.QMainWindow):
             self.disable_menu_items()
 
     def get_open_filename(self, name_filter='*.*', directory='', title='Select a file to open'):
-        filename = QtGui.QFileDialog.getOpenFileName(self, title, directory, name_filter)
-        if USES_PYSIDE:
-            # PySide returns a tuple instead of just a string
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, title, directory, name_filter)
+        if isinstance(filename,tuple):
             filename = filename[0]
         if filename == '':
             raise IOError('No file selected.')
         return filename
 
     def get_save_filename(self, name_filter='*.*', directory='', title='Select a filename for saving'):
-        filename = QtGui.QFileDialog.getSaveFileName(self, title, directory, name_filter)
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, title, directory, name_filter)
         if filename == '':
             raise IOError('No filename selected.')
         return filename
@@ -288,9 +290,9 @@ class MainWindow(QtGui.QMainWindow):
                 self.disable_menu_items()
 
     def menu_close_all(self):
-        reply = QtGui.QMessageBox.question(self, 'Confirm',
-            'Are you sure you want to close all tabs?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm',
+            'Are you sure you want to close all tabs?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             while self.tab_frame.count() > 0:
                 self.get_active_tab().close()
                 self.tab_frame.removeTab(self.tab_frame.currentIndex())
@@ -303,9 +305,9 @@ class MainWindow(QtGui.QMainWindow):
             self.app.quit()
 
     def menu_reload(self):
-        reply = QtGui.QMessageBox.question(self, 'Confirm',
-            'Are you sure you want to reload the VI?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm',
+            'Are you sure you want to reload the VI?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             tab_window = self.get_active_tab()
             title = tab_window.reload_file()
             index = self.tab_frame.currentIndex()
@@ -343,18 +345,18 @@ class MainWindow(QtGui.QMainWindow):
             self.workspace = filename
 
     def menu_page_setup(self):
-        dialog = QtGui.QPageSetupDialog(self.printer)
+        dialog = QtWidgets.QPageSetupDialog(self.printer)
         dialog.exec_()
 
     def menu_print_preview(self):
-        dialog = QtGui.QPrintPreviewDialog(self.printer)
+        dialog = QtWidgets.QPrintPreviewDialog(self.printer)
         dialog.paintRequested.connect(self.print_current_tab)
         dialog.exec_()
 
     def menu_print(self):
-        dialog = QtGui.QPrintDialog(self.printer)
+        dialog = QtWidgets.QPrintDialog(self.printer)
         dialog.setWindowTitle('Print Document')
-        if dialog.exec_() == QtGui.QDialog.Accepted:
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.statusBar().showMessage('Printing...')
             self.print_current_tab(self.printer)
             self.statusBar().clearMessage()
@@ -410,14 +412,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def menu_load_parameters_defaults(self):
         tab_window = self.get_active_tab()
-        reply = QtGui.QMessageBox.question(self, 'Confirm Load Parameters',
+        reply = QtWidgets.QMessageBox.question(self, 'Confirm Load Parameters',
             'Are you sure you want to replace current parameters?',
-            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+            QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             tab_window.load_parameters(default=True)
 
     def menu_load_parameters(self):
-            self.get_active_tab().load_parameters()
+        self.get_active_tab().load_parameters()
 
     def menu_save_parameters_as_defaults(self):
         self.get_active_tab().save_parameters(default=True)
@@ -468,11 +470,12 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_frame.setUpdatesEnabled(True)
 
     def menu_about(self):
-        QtGui.QMessageBox.about(self, 'About Pythics',
+        QtWidgets.QMessageBox.about(self, 'About Pythics',
 """Python Instrument Control System, also known as Pythics
-version 0.7.3
+version 0.7.4
 
 Copyright 2008 - 2015 Brian R. D'Urso
+Copyrigth 2017        Anton Velo (adaptation from python 2 to 3 and from QT4 to QT5)
 
 Pythics is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published
@@ -538,7 +541,7 @@ class TabHtmlWindow(pythics.html.HtmlWindow):
             self.process.start()
         except:
             message = 'Error while opening xml file %s\n' % file_name_only  + traceback.format_exc(0)
-            QtGui.QMessageBox.critical(self, 'Error', message, QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Error', message, QtWidgets.QMessageBox.Ok)
             self.logger.exception('Error while opening xml file.')
             self.error = True
         self.main_window.set_status_text('')
@@ -589,7 +592,7 @@ class TabHtmlWindow(pythics.html.HtmlWindow):
                     elif not os.path.isabs(filename):
                         filename = os.path.join(self.html_path, filename)
                 if filename != '':
-                        self.process.save_parameters(filename)
+                    self.process.save_parameters(filename)
             except:
                 self.logger.exception('Error while loading parameters.')
 
@@ -605,19 +608,19 @@ class OptionsProcessor(object):
         self.first_vi = ""
 
     def usage(self):
-        print """\
+        print("""\
 Usage: pythics-run.py [options]
 Options:
   -h | --help    show help text then exit
   -a | --app     selects startup html file
   -v | --verbose selects verbose mode
-  -d | --debug   selects debug mode"""
+  -d | --debug   selects debug mode""")
 
     def options(self):
         try:
             opts, args = getopt.getopt(sys.argv[1:], 'ha:vd',
                                        ['help', 'app', 'verbose', 'debug'])
-        except getopt.GetoptError, err:
+        except getopt.GetoptError as err:
             # print help information and exit:
             print(err) # will print something like "option -a not recognized"
             self.usage()
@@ -641,7 +644,7 @@ Options:
 # create and start the application
 #
 if __name__ == '__main__':
-    application = QtGui.QApplication(sys.argv)
+    application = QtWidgets.QApplication(sys.argv)
     master = pythics.master.Master()
     cl_options_processor = OptionsProcessor()
     cl_options_processor.options()

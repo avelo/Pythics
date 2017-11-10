@@ -97,7 +97,7 @@ def read_array(filename, separator=', ', comment='#', dtype='float'):
             stripped_line = line.strip()
             if len(stripped_line) != 0 and stripped_line[0] != comment:
                 items = stripped_line.split(separator)
-                data.append(map(np.cast[dtype], items))
+                data.append(list(map(np.cast[dtype], items)))
         a = np.array(data, dtype=dtype)
     return(a)
 

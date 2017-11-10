@@ -1470,13 +1470,13 @@ Pythics is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
     <a id="qwidgets"/>
     <h2>QWidgets - Calendar and LCDNumber</h2>
     <h3>One of each below will fail to load, depending on whether you have PyQt or PySide!</h3>
-    <object classid="PyQt4.QtGui.QCalendarWidget" height="300" id="qwidget_2" width="500"/>
-    <object classid="PySide.QtGui.QCalendarWidget" height="300" id="qwidget_2" width="500"/>
+    <object classid="PyQt5.QtWidgets.QCalendarWidget" height="300" id="qwidget_2" width="500"/>
+    <object classid="PySide.QtWidgets.QCalendarWidget" height="300" id="qwidget_2" width="500"/>
    
     <br/>
     
-    <object classid="PyQt4.QtGui.QLCDNumber" height="80" id="qwidget_1" width="500"/>
-    <object classid="PySide.QtGui.QLCDNumber" height="80" id="qwidget_1" width="500"/>
+    <object classid="PyQt5.QtWidgets.QLCDNumber" height="80" id="qwidget_1" width="500"/>
+    <object classid="PySide.QtWidgets.QLCDNumber" height="80" id="qwidget_1" width="500"/>
     
     <br/>
     

@@ -24,7 +24,7 @@
 #
 import time
 
-#from PyQt4 import QtCore, QtGui
+#from PyQt5 import QtCore, QtGui
 from pythics.settings import _TRY_PYSIDE
 try:
     if not _TRY_PYSIDE:
@@ -39,22 +39,24 @@ except ImportError:
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
-    import PyQt4.QtCore as _QtCore
-    import PyQt4.QtGui as _QtGui
+    import PyQt5.QtCore as _QtCore
+    import PyQt5.QtGui as _QtGui
+    import PyQt5.QtWidgets as _QtWidgets
     QtCore = _QtCore
     QtGui = _QtGui
+    QtWidgets = _QtWidgets
     Signal = QtCore.pyqtSignal
     USES_PYSIDE = False
 
 
-class ImageLabel(QtGui.QWidget):
+class ImageLabel(QtWidgets.QWidget):
     def __init__(self, control, *args):
-        QtGui.QWidget.__init__(self, *args)
+        QtWidgets.QWidget.__init__(self, *args)
         self.control = control
         self.image = None
         self.draw_w = 1
         self.draw_h = 1
-        size_policy = QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Ignored)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         self.setSizePolicy(size_policy)
 
     def setScale(self, scale):
@@ -116,7 +118,7 @@ class ImageLabel(QtGui.QWidget):
             self.control._mouse_press_right(x, y)
         else:
             # pass on other buttons to base class
-            QtGui.QWidget.mousePressEvent(self, event)
+            QtWidgets.QWidget.mousePressEvent(self, event)
 
     def mouseReleaseEvent(self, event):
         x = int((event.x()-self.x_offset)/float(self.scale))
@@ -127,7 +129,7 @@ class ImageLabel(QtGui.QWidget):
             self.control._mouse_release_right(x, y)
         else:
             # pass on other buttons to base class
-            QtGui.QWidget.mouseReleaseEvent(self, event)
+            QtWidgets.QWidget.mouseReleaseEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
         x = int((event.x()-self.x_offset)/float(self.scale))
@@ -138,19 +140,19 @@ class ImageLabel(QtGui.QWidget):
             self.control._mouse_double_click_right(x, y)
         else:
             # pass on other buttons to base class
-            QtGui.QWidget.mouseDoubleClickEvent(self, event)
+            QtWidgets.QWidget.mouseDoubleClickEvent(self, event)
 
 
 #
 # multiturn rotatable control to select a value from a set of choices
 #
-class Knob(QtGui.QDial):
-    choiceChanged = Signal(int)    
-    
+class Knob(QtWidgets.QDial):
+    choiceChanged = Signal(int)
+
     def __init__(self, steps=50, choices=['None'], acceleration=5.0, tracking=False, wrapping=False):
-        QtGui.QDial.__init__(self)
+        QtWidgets.QDial.__init__(self)
         self.setNotchesVisible(True)
-        self.setStyle(QtGui.QStyleFactory.create('plastique'))
+        self.setStyle(QtWidgets.QStyleFactory.create('plastique'))
         self.steps = steps
         self.choices = choices
         self.choice_tracking = tracking
@@ -162,9 +164,9 @@ class Knob(QtGui.QDial):
         self.setRange(0, self.steps)
         self.last_time = time.time()
         self.acceleration = acceleration
-            
+
     def sliderChange(self, change):
-        if change == 3: # QtGui.QAbstractSlider.SliderChange
+        if change == 3: # QtWidgets.QAbstractSlider.SliderChange
             new_position = self.value()
             new_time = time.time()
             ccw_change = (self.last_position - new_position) % self.steps
@@ -173,9 +175,9 @@ class Knob(QtGui.QDial):
                 # knob was turned CCW
                 accel = int(ccw_change*self.acceleration/((abs(new_time-self.last_time)+0.001)*self.steps))
                 if self.index_wrapping:
-                     new_index = (self.last_index - ccw_change - accel) % len(self.choices)
+                    new_index = (self.last_index - ccw_change - accel) % len(self.choices)
                 else:
-                     new_index = max(0, self.last_index - ccw_change - accel)
+                    new_index = max(0, self.last_index - ccw_change - accel)
             else:
                 # knob was turned CW
                 accel = int(cw_change*self.acceleration/((abs(new_time-self.last_time)+0.001)*self.steps))
@@ -189,22 +191,22 @@ class Knob(QtGui.QDial):
                 if self.choice_tracking:
                     self.choiceChanged.emit(self.getChoiceValue())
             self.last_time = new_time
-        QtGui.QDial.sliderChange(self, change)
-        
+        QtWidgets.QDial.sliderChange(self, change)
+
     def mouseReleaseEvent(self, event):
         if not self.choice_tracking:
             self.choiceChanged.emit(self.getChoiceValue())
-        QtGui.QDial.mouseReleaseEvent(self, event)
-        
+        QtWidgets.QDial.mouseReleaseEvent(self, event)
+
     def keyPressEvent(self, event):
         if not self.choice_tracking:
             self.choiceChanged.emit(self.getChoiceValue())
-        QtGui.QDial.keyPressEvent(self, event)
+        QtWidgets.QDial.keyPressEvent(self, event)
 
     def wheelEvent(self, event):
         if not self.choice_tracking:
             self.choiceChanged.emit(self.getChoiceValue())
-        QtGui.QDial.wheelEvent(self, event)
+        QtWidgets.QDial.wheelEvent(self, event)
 
     def setChoices(self, choices):
         self.choices = choices
@@ -219,20 +221,20 @@ class Knob(QtGui.QDial):
 
     def getChoiceValue(self):
         return self.choices[self.last_index]
-        
+
     def paintEvent(self,event):
-        QtGui.QDial.paintEvent(self,event)
-        painter = QtGui.QPainter(self)      
+        QtWidgets.QDial.paintEvent(self,event)
+        painter = QtGui.QPainter(self)
         painter.setPen(QtGui.QPen(self.palette().color(QtGui.QPalette.Text), 1))
         painter.drawText(self.rect(), QtCore.Qt.AlignCenter, str(self.getChoiceValue()));
-        
+
 
 #
 # floating point NumBox control
 #
-class ScientificDoubleSpinBox(QtGui.QDoubleSpinBox):
+class ScientificDoubleSpinBox(QtWidgets.QDoubleSpinBox):
     def __init__(self, parent=None, format_str='%g', *args, **kwargs):
-        QtGui.QDoubleSpinBox.__init__(self, parent, *args, **kwargs)
+        QtWidgets.QDoubleSpinBox.__init__(self, parent, *args, **kwargs)
         self.format_str = format_str
         self.validator = QtGui.QDoubleValidator()
 
@@ -248,9 +250,9 @@ class ScientificDoubleSpinBox(QtGui.QDoubleSpinBox):
 #
 # Python shell widget for Shell control
 #
-class Shell(QtGui.QPlainTextEdit):
+class Shell(QtWidgets.QPlainTextEdit):
     def __init__(self, push_func, prompt='$> ', parent=None, font='Consolas', font_size=10, *args, **kwargs):
-        QtGui.QPlainTextEdit.__init__(self, parent, *args, **kwargs)
+        QtWidgets.QPlainTextEdit.__init__(self, parent, *args, **kwargs)
         self.prompt = prompt
         self.history = []
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
@@ -268,7 +270,7 @@ class Shell(QtGui.QPlainTextEdit):
 
     def getCommand(self):
         doc = self.document()
-        curr_line = unicode(doc.findBlockByLineNumber(doc.lineCount() - 1).text())
+        curr_line = str(doc.findBlockByLineNumber(doc.lineCount() - 1).text())
         curr_line = curr_line.rstrip()
         curr_line = curr_line[len(self.prompt):]
         return curr_line

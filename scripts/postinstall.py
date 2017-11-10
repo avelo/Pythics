@@ -15,6 +15,6 @@ examples = os.path.join(sysconfig.get_python_lib(True), 'pythics', 'start.py')
 
 if sys.argv[1] == '-install':
     create_shortcut(examples, 'Start Pythics', shortcut)
-    print 'Created Pythics shortcut on desktop.'
+    print('Created Pythics shortcut on desktop.')
 elif os.path.exists(shortcut):
     os.remove(shortcut)

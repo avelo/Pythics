@@ -1,0 +1,10 @@
+## Linux:
+adduser to dialout group
+
+## Python3
+install miniconda3
+
+conda create -n pythics_python3_qt5
+source activate pythics_python3_qt5
+conda install pyqt pandas pillow lxml numpy ipython sip matplotlib openpyxl
+pip install pyserial

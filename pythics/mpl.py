@@ -26,7 +26,7 @@ import multiprocessing
 
 import numpy as np
 
-#from PyQt4 import QtCore, QtGui
+#from PyQt5 import QtCore, QtGui
 from pythics.settings import _TRY_PYSIDE
 try:
     if not _TRY_PYSIDE:
@@ -40,21 +40,19 @@ except ImportError:
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
-    import PyQt4.QtCore as _QtCore
-    import PyQt4.QtGui as _QtGui
+    import PyQt5.QtCore as _QtCore
+    import PyQt5.QtGui as _QtGui
+    import PyQt5.QtWidgets as _QtWidgets
     QtCore = _QtCore
     QtGui = _QtGui
+    QtWidgets = _QtWidgets
     USES_PYSIDE = False
 
 import matplotlib
 if USES_PYSIDE:
-    matplotlib.rcParams['backend.qt4']='PySide'
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-try:
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Toolbar
-except ImportError:
-    # seems that matplotlib have changed the name in newer versions
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Toolbar
+    matplotlib.rcParams['backend.qt5']='PySide2'
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Toolbar
 # the following import is necessary for 3-D plots in matplotlib although it is
 #   not directly used
 from mpl_toolkits.mplot3d import Axes3D
@@ -113,8 +111,8 @@ class Canvas(pythics.libcontrol.MPLControl):
     def __init__(self, parent, toolbar=True, **kwargs):
         pythics.libcontrol.MPLControl.__init__(self, parent, **kwargs)
 
-        self._widget = QtGui.QFrame()
-        vbox = QtGui.QVBoxLayout()
+        self._widget = QtWidgets.QFrame()
+        vbox = QtWidgets.QVBoxLayout()
         # plot
         self.figure = matplotlib.figure.Figure()
         self.canvas = FigureCanvas(self.figure)
@@ -253,7 +251,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                                  self._x_autoscale, self._y_autoscale)
         self._figure.tight_layout()
         self._canvas.draw()
-
+        
         # update animation background artists
         self._animated_background = self._canvas.copy_from_bbox(self._axes.bbox)
         for k in self._animated_artists:
@@ -806,7 +804,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                 #self._full_animated_redraw()
                 # PROBLEMS WITH VIEW RANGE IN ABOVE CODE
                 # BELOW WORKS BUT IS STILL NOT EFFICIENT
-                # SHOULD REWRITE FOR SPEED
+                # SHOULD REWRITE FOR SPEED                
                 if rescale or (data.shape[0] != shape) or (data.shape[1] != shape):
                     self._axes.relim()
                     item.autoscale()
@@ -1096,7 +1094,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
         """
         if filename is None:
             filetypes = self._canvas.get_supported_filetypes_grouped()
-            sorted_filetypes = filetypes.items()
+            sorted_filetypes = list(filetypes.items())
             sorted_filetypes.sort()
             default_filetype = self._canvas.get_default_filetype()
             start = "image." + default_filetype
@@ -1109,7 +1107,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                     selected_filter = filter
                 filters.append(filter)
             filters = ';;'.join(filters)
-            filename = QtGui.QFileDialog.getSaveFileName(None, 'Save Plot Image',
+            filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Plot Image',
                                                          start, filters,
                                                          selected_filter)
         if filename:
@@ -1120,7 +1118,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
                         item.set_animated(False)
                     self._animated = False
                     self._update(rescale)
-                    self._canvas.print_figure(unicode(filename),
+                    self._canvas.print_figure(str(filename),
                                              bbox_inches='tight',
                                              dpi=self._plot_properties['dpi'])
                     for k in self._animated_artists:
@@ -1128,13 +1126,13 @@ class Plot2D(pythics.libcontrol.MPLControl):
                         item.set_animated(True)
                     self._animated = True
                 else:
-                    self._canvas.print_figure(unicode(filename),
+                    self._canvas.print_figure(str(filename),
                                              bbox_inches='tight',
                                              dpi=self._plot_properties['dpi'])
-            except Exception, e:
-                QtGui.QMessageBox.critical(
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(
                     None, "Error saving file", str(e),
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+                    QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.NoButton)
 
 
 #
@@ -1195,7 +1193,7 @@ class Chart2D(pythics.libcontrol.MPLControl):
         pythics.libcontrol.MPLControl.__init__(self, parent, **kwargs)
         # initialize parameters that only depend on the number of plots
         self._n_plots = plots
-        self._n_plot_range = range(self._n_plots)
+        self._n_plot_range = list(range(self._n_plots))
         self._memory = memory
         self._history_length = length
         self._fast_scroll = fast_scroll
@@ -1203,33 +1201,33 @@ class Chart2D(pythics.libcontrol.MPLControl):
         self._span = self._requested_span
         self._span_choice = 'autoscale span'
         # setup the layout and plot widget
-        self._widget = QtGui.QFrame()
-        self._sizer = QtGui.QVBoxLayout()
+        self._widget = QtWidgets.QFrame()
+        self._sizer = QtWidgets.QVBoxLayout()
         self._figure = matplotlib.figure.Figure()
         self._canvas = PythicsMPLCanvas(self, self._figure)
         self._sizer.addWidget(self._canvas)
         self._mpl_widget = self._canvas
         # row of controls below the plot
-        self._row_sizer = QtGui.QHBoxLayout()
+        self._row_sizer = QtWidgets.QHBoxLayout()
         self._sizer.addLayout(self._row_sizer)
         # set up scoll bar
         self._scroll_to_end = True
         self._pressed = False
-        self._scrollbar = QtGui.QScrollBar(QtCore.Qt.Horizontal)
+        self._scrollbar = QtWidgets.QScrollBar(QtCore.Qt.Horizontal)
         self._scrollbar.setTracking(True)
         self._row_sizer.addWidget(self._scrollbar)
         self._scrollbar.valueChanged.connect(self._scroll)
         self._scrollbar.sliderPressed.connect(self._pressed_start)
         self._scrollbar.sliderReleased.connect(self._pressed_end)
         # choice of autoscale or fixed span
-        self._choice_widget = QtGui.QComboBox()
+        self._choice_widget = QtWidgets.QComboBox()
         self._choice_widget.insertItem(2, 'autoscale span')
         self._choice_widget.insertItem(2, 'fixed span')
         self._choice_widget.setFixedWidth(150)
         self._choice_widget.activated.connect(self._change_span_choice)
         self._row_sizer.addWidget(self._choice_widget)
         # box to hold fixed span
-        self._span_widget = QtGui.QSpinBox()
+        self._span_widget = QtWidgets.QSpinBox()
         self._span_widget.setSingleStep(1)
         self._span_widget.setMinimum(2)
         self._span_widget.setMaximum(self._history_length)
@@ -1266,7 +1264,7 @@ class Chart2D(pythics.libcontrol.MPLControl):
         #self._canvas.mpl_connect('resize_event', self.on_resize)
 
     def _change_span(self, *args):
-        self._requested_span = long(self._span_widget.value())
+        self._requested_span = int(self._span_widget.value())
         if self._span_choice == 'fixed span':
             self._set_span(self._requested_span)
 
@@ -1662,7 +1660,7 @@ class Chart2D(pythics.libcontrol.MPLControl):
         """
         if filename is None:
             filetypes = self._canvas.get_supported_filetypes_grouped()
-            sorted_filetypes = filetypes.items()
+            sorted_filetypes = list(filetypes.items())
             sorted_filetypes.sort()
             default_filetype = self._canvas.get_default_filetype()
             start = "image." + default_filetype
@@ -1675,7 +1673,7 @@ class Chart2D(pythics.libcontrol.MPLControl):
                     selected_filter = filter
                 filters.append(filter)
             filters = ';;'.join(filters)
-            filename = QtGui.QFileDialog.getSaveFileName(None, 'Save Plot Image',
+            filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Plot Image',
                                                          start, filters,
                                                          selected_filter)
         if filename:
@@ -1684,16 +1682,16 @@ class Chart2D(pythics.libcontrol.MPLControl):
                     item.set_animated(False)
                 self._animated = False
                 self._canvas.draw()
-                self._canvas.print_figure(unicode(filename),
+                self._canvas.print_figure(str(filename),
                                          bbox_inches='tight',
                                          dpi=self.dpi)
                 for item in self.curves:
                     item.set_animated(True)
                 self._animated = True
-            except Exception, e:
-                QtGui.QMessageBox.critical(
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(
                     None, "Error saving file", str(e),
-                    QtGui.QMessageBox.Ok, QtGui.QMessageBox.NoButton)
+                    QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.NoButton)
 
 
 class PythicsMPLCanvas(FigureCanvas):
@@ -1705,7 +1703,7 @@ class PythicsMPLCanvas(FigureCanvas):
         self.customContextMenuRequested.connect(self._popup)
 
     def _popup(self, pos):
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         save_action = menu.addAction('Save...')
         action = menu.exec_(self.mapToGlobal(pos))
         if action == save_action:

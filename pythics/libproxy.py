@@ -176,7 +176,7 @@ class AutoProxy(ControlProxy):
             return tuple(r)
         elif t is dict:
             r = dict()
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 r[k] = self._proxies_to_keys(v)
             return r
         elif t is types.FunctionType:
@@ -209,7 +209,7 @@ class AutoProxy(ControlProxy):
         elif t is dict:
             # have to check for ProxyKeys in the dict
             r = dict()
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 r[k] = self._keys_to_proxies(v)
             return r
         else:
@@ -218,7 +218,7 @@ class AutoProxy(ControlProxy):
 
     def __dir__(self):
         c_dir = self._call_method('call_Proxy_method', self._key, '_dir')
-        p_dir = vars(self).keys()
+        p_dir = list(vars(self).keys())
         return c_dir + p_dir
 
     def _get__doc__(self):

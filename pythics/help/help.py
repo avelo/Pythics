@@ -429,7 +429,7 @@ Attributes:
     """Arbitrary PyQt-compatible widgets can be used within Pythics. They are
 included with the `classid` parameter of an `object`, as with other controls.
 The full include name must be specified, e.g.:
-<object classid='PyQt4.QtGui.QCalendarWidget' id='calendar' width='500' height='300'></object>
+<object classid='PyQt5.QtWidgets.QCalendarWidget' id='calendar' width='500' height='300'></object>
 
 All methods and attributes normally accesible from Python are accessible in
 Pythics. If you need access to a library to create objects to be passed to the
@@ -1405,7 +1405,7 @@ def test_message_dialog_1(message_dialog_1, message_dialog_result_1, **kwargs):
 #
 def test_meter_1(meter_1, **kwargs):
     meter_1.value = np.random.random()*200.0
-    
+
 
 #
 # NumBox
@@ -1722,7 +1722,7 @@ def test_mpl_plot_2d(mpl_plot_2d_1, mpl_plot_2d_2, mpl_plot_2d_3, mpl_plot_2d_4,
 
 def test_event_mpl_plot_2d_4(mpl_plot_2d_4, **kwargs):
     event = mpl_plot_2d_4.events.pop()
-    print 'EVENT:', event.name
+    print('EVENT:', event.name)
 
 
 #

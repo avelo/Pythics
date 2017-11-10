@@ -27,7 +27,7 @@ import pickle
 import types
 
 import numpy as np
-#from PyQt4 import QtCore
+#from PyQt5 import QtCore
 from pythics.settings import _TRY_PYSIDE
 try:
     if not _TRY_PYSIDE:
@@ -41,8 +41,8 @@ except ImportError:
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
-    import PyQt4.QtCore as _QtCore
-    import PyQt4.QtGui as _QtGui
+    import PyQt5.QtCore as _QtCore
+    import PyQt5.QtGui as _QtGui
     QtCore = _QtCore
     QtGui = _QtGui
     USES_PYSIDE = False
@@ -102,7 +102,7 @@ class Master(QtCore.QObject):
         # protect from exceptions to avoid interrupting program
         try:
             process_id, function_name, args, kwargs = command
-            #self.logger.debug('Executing %s.' % str((process_id, function_name, args, kwargs)))
+            self.logger.debug('Executing %s.' % str((process_id, function_name, args, kwargs)))
             self.slave_processes[process_id].exec_slave_to_master_call_request(function_name, args, kwargs)
         except:
             self.logger.exception('Error in MasterManager.execute_slave_to_master_call_request while executing call request from slave process in master process.')
@@ -153,7 +153,7 @@ class Master(QtCore.QObject):
 
     def stop(self):
         # stop the SlaveProcesses
-        for p in self.slave_processes.itervalues():
+        for p in self.slave_processes.values():
             p.stop()
         # stop the QueueWatcher
         self.slave_to_master_call_queue.put((None, None, None, None))
@@ -234,17 +234,18 @@ class SlaveInterface(object):
         #  completely synchronous execution. Higher values would potentially
         #  buffer more requests.
         self.slave_to_master_call_queue_semaphore = manager.Semaphore(2)
+        #self.slave_to_master_call_queue_semaphore = manager.Semaphore(1)
         self.slave_process = None
         # objects which have proxies
         self.objects = dict()
-        self.fully_picklable_types = [int, long, float, bool, str, unicode, types.NoneType, np.ndarray]
-        self.fully_picklable_types.extend(np.typeDict.values())
+        self.fully_picklable_types = [int, int, float, bool, str, str, type(None), np.ndarray]
+        self.fully_picklable_types.extend(list(np.typeDict.values()))
         self.control_proxies = dict()
         self.module_names = list()
         self.initialization_commands = list()
         self.termination_commands = list()
         # loop through controls to create proxies, etc.
-        for k, v in controls.iteritems():
+        for k, v in controls.items():
             # _register() is an opportunity for controls to add to:
             #   module_names, initialization_commands, termination_commands,
             #   or to add global variables
@@ -328,7 +329,7 @@ class SlaveInterface(object):
         except:
             self.logger.error("Problem loading parameter file '%s'. Parameter loading aborted." % filename)
         else:
-            for k, v in temp_dict.iteritems():
+            for k, v in temp_dict.items():
                 try:
                     self.controls[k]._set_parameter(v)
                 except KeyError:
@@ -341,7 +342,7 @@ class SlaveInterface(object):
             filename = self.default_parameter_filename
         with open(filename, 'w') as file:
             temp_dict = dict()
-            for k, v in self.controls.iteritems():
+            for k, v in self.controls.items():
                 try:
                     if hasattr(v, 'save') and v.save == True:
                         if hasattr(v, '_get_parameter'):
@@ -351,7 +352,7 @@ class SlaveInterface(object):
             pickle.dump(temp_dict, file, 0)
 
     def redraw(self):
-        for k, c in self.controls.items():
+        for k, c in list(self.controls.items()):
             if hasattr(c, '_redraw'):
                 c._redraw()
 
@@ -411,7 +412,7 @@ class SlaveInterface(object):
         elif t is dict:
             # have to check for unpicklable objects in the dict
             r = dict()
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 r[k] = self.objects_to_keys(v)
             return r
         else:
@@ -446,7 +447,7 @@ class SlaveInterface(object):
         elif t is dict:
             # have to check for ProxyKeys in the dict
             r = dict()
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 r[k] = self.keys_to_objects(v)
             return r
         elif t is pythics.libproxy.FunctionProxy:

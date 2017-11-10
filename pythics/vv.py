@@ -31,7 +31,7 @@ except:
     logger.warning("'numpy' is not available.")
     numpy_loaded = False
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 import visvis as vv
 
 import pythics.lib

@@ -25,8 +25,9 @@
 import copy
 import importlib
 import re
-import string, StringIO
+import string, io
 import sys, traceback
+import os
 
 try:
     from lxml import etree as ElementTree
@@ -36,7 +37,7 @@ except ImportError as e:
     from xml.etree import ElementTree
     lxml_loaded = False
 
-#from PyQt4 import QtCore, QtGui
+#from PyQt5 import QtCore, QtGui
 from pythics.settings import _TRY_PYSIDE
 try:
     if not _TRY_PYSIDE:
@@ -50,10 +51,12 @@ except ImportError:
     import sip
     sip.setapi('QString', 2)
     sip.setapi('QVariant', 2)
-    import PyQt4.QtCore as _QtCore
-    import PyQt4.QtGui as _QtGui
+    import PyQt5.QtCore as _QtCore
+    import PyQt5.QtGui as _QtGui
+    import PyQt5.QtWidgets as _QtWidgets
     QtCore = _QtCore
     QtGui = _QtGui
+    QtWidgets = _QtWidgets
     USES_PYSIDE = False
 
 
@@ -65,7 +68,7 @@ class XMLError(Exception):
         return repr(self.value)
 
 
-class Hyperlink(QtGui.QLabel):
+class Hyperlink(QtWidgets.QLabel):
     def __init__(self, parent, label, url):
         super(Hyperlink, self).__init__('<a href=#'+url+'>'+label+'</a>')
         self.setTextFormat(QtCore.Qt.RichText)
@@ -82,251 +85,6 @@ default_style_sheet = """
     color: black; font-size: 12pt; font-family: default; font-style: normal;
     font-weight: normal;}
 """
-
-
-xmlschema_f = StringIO.StringIO('''\
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-
-  <!-- definition of element groups -->
-  <xs:group name="bodygroup">
-    <xs:choice>
-      <xs:element ref="a"/>
-      <xs:element ref="br"/>
-      <xs:element ref="div"/>
-      <xs:element ref="hr"/>
-      <xs:element ref="h1"/>
-      <xs:element ref="h2"/>
-      <xs:element ref="h3"/>
-      <xs:element ref="h4"/>
-      <xs:element ref="h5"/>
-      <xs:element ref="h6"/>
-      <xs:element ref="object"/>
-      <xs:element ref="p"/>
-      <xs:element ref="table"/>
-    </xs:choice>
-  </xs:group>
-
-  <!-- definition of simple elements -->
-  <xs:element name="br"/>
-  <xs:element name="title" type="xs:string"/>
-
-  <!-- definition of attributes -->
-  <xs:attribute name="class" type="xs:string"/>
-  <xs:attribute name="classid" type="xs:string"/>
-  <xs:attribute name="colspan" type="xs:positiveInteger"/>
-  <xs:attribute name="height" type="xs:nonNegativeInteger"/>
-  <xs:attribute name="href" type="xs:string"/>
-  <xs:attribute name="id" type="xs:string"/>
-  <xs:attribute name="name" type="xs:string"/>
-  <xs:attribute name="rowspan" type="xs:positiveInteger"/>
-  <xs:attribute fixed="text/css" name="type" type="xs:string"/>
-  <xs:attribute name="value" type="xs:string"/>
-
-  <xs:attribute name="width">
-    <xs:simpleType>
-      <xs:restriction base="xs:string">
-        <xs:pattern value="[\-+]?(\d+|\d+(\.\d+)?%)"/>
-      </xs:restriction>
-    </xs:simpleType>
-  </xs:attribute>
-
-  <!-- definition of complex elements -->
-  <xs:element name="hr">
-    <xs:complexType>
-      <xs:attribute ref="width"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h1">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h2">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h3">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h4">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h5">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="h6">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="p">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="class"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="a">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="href"/>
-          <xs:attribute ref="id"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="td">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:group ref="bodygroup"/>
-      </xs:choice>
-      <xs:attribute ref="class"/>
-      <xs:attribute ref="width"/>
-      <xs:attribute ref="rowspan"/>
-      <xs:attribute ref="colspan"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="tr">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:element ref="td"/>
-        <xs:element name="div">
-          <xs:complexType>
-            <xs:choice maxOccurs="unbounded" minOccurs="0">
-              <xs:element ref="td"/>
-            </xs:choice>
-            <xs:attribute ref="class" use="required"/>
-          </xs:complexType>
-        </xs:element>
-      </xs:choice>
-      <xs:attribute ref="class"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="table">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:element ref="tr"/>
-      </xs:choice>
-      <xs:attribute ref="class"/>
-      <xs:attribute ref="width"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="param">
-    <xs:complexType>
-      <xs:attribute ref="name" use="required"/>
-      <xs:attribute ref="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="object">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:element ref="param"/>
-      </xs:choice>
-      <xs:attribute ref="classid" use="required"/>
-      <xs:attribute ref="id"/>
-      <xs:attribute ref="width"/>
-      <xs:attribute ref="height"/>
-      <xs:attribute ref="class"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="style">
-    <xs:complexType>
-      <xs:simpleContent>
-        <xs:extension base="xs:string">
-          <xs:attribute ref="type"/>
-        </xs:extension>
-      </xs:simpleContent>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="head">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:element ref="title"/>
-        <xs:element minOccurs="0" ref="style"/>
-      </xs:choice>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="div">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:group ref="bodygroup"/>
-      </xs:choice>
-      <xs:attribute ref="class" use="required"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="body">
-    <xs:complexType>
-      <xs:choice maxOccurs="unbounded" minOccurs="0">
-        <xs:group ref="bodygroup"/>
-      </xs:choice>
-      <xs:attribute ref="class"/>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="html">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="head"/>
-        <xs:element ref="body"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-</xs:schema>
-''')
-
 
 class CascadingStyleSheet(object):
     def __init__(self, defaults):
@@ -379,7 +137,7 @@ class CascadingStyleSheet(object):
         raise XMLError("Could not find style for element: key=%s tag=%s cls=%s id=%s." % (key, tag, cls, element_id))
 
 
-class HtmlWindow(QtGui.QScrollArea):
+class HtmlWindow(QtWidgets.QScrollArea):
     def __init__(self, parent, default_mod_name, logger=None):
         super(HtmlWindow, self).__init__(parent)
         self.parent = parent
@@ -390,9 +148,9 @@ class HtmlWindow(QtGui.QScrollArea):
         self.setup()
 
     def setup(self):
-        self.frame = QtGui.QFrame()
-        self.frame.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.main_sizer = QtGui.QVBoxLayout()
+        self.frame = QtWidgets.QFrame()
+        self.frame.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.main_sizer = QtWidgets.QVBoxLayout()
         self.frame.setLayout(self.main_sizer)
         self.setWidget(self.frame)
         self.setWidgetResizable(True)
@@ -420,7 +178,7 @@ class HtmlWindow(QtGui.QScrollArea):
             self.tree = ElementTree.parse(filename)
         # validate the file if lxml is available
         if lxml_loaded:
-            xmlschema_tree = ElementTree.parse(xmlschema_f)
+            xmlschema_tree = ElementTree.parse(os.path.join(os.path.dirname(__file__), 'schema','xhtml-pythics.xsd'))
             xmlschema = ElementTree.XMLSchema(xmlschema_tree)
             xmlschema.assertValid(self.tree)
         root = self.tree.getroot()
@@ -531,7 +289,7 @@ class HtmlWindow(QtGui.QScrollArea):
             self.row_end()
             self.row_begin(element_list, sizer)
             width, height, proportion = self.extract_size(element.attrib)
-            table_sizer = QtGui.QGridLayout()
+            table_sizer = QtWidgets.QGridLayout()
             v_pad, h_pad = self.get_padding(el)
             table_sizer.setVerticalSpacing(v_pad)
             table_sizer.setHorizontalSpacing(h_pad)
@@ -567,7 +325,7 @@ class HtmlWindow(QtGui.QScrollArea):
         elif tag == 'p':
             el = element_list[:]
             el.append(element)
-            ob = QtGui.QLabel(element.text)
+            ob = QtWidgets.QLabel(element.text)
             ob.setFont(self.get_font(el))
             row_sizer = self.row_get_sizer()
             row_sizer.addWidget(ob, 0, QtCore.Qt.AlignBottom)
@@ -579,7 +337,7 @@ class HtmlWindow(QtGui.QScrollArea):
             el.append(element)
             self.row_end()
             self.row_begin(element_list, sizer)
-            ob = QtGui.QLabel(element.text)
+            ob = QtWidgets.QLabel(element.text)
             ob.setFont(self.get_font(el))
             row_sizer = self.row_get_sizer()
             row_sizer.addWidget(ob, 0, QtCore.Qt.AlignBottom)
@@ -602,7 +360,7 @@ class HtmlWindow(QtGui.QScrollArea):
             for p in element.getiterator(tag='param'):
                 attr_dict[p.get('name')] = p.get('value')
             evaled_attrs = dict()
-            for k, v in attr_dict.iteritems():
+            for k, v in attr_dict.items():
                 try:
                     evaled_attrs[k] = eval(v)
                 except Exception:
@@ -610,7 +368,7 @@ class HtmlWindow(QtGui.QScrollArea):
             try:
                 name_list = full_object_name.split('.')
                 if len(name_list) > 1:
-                    mod_name = string.join(name_list[0:-1], '.')
+                    mod_name = '.'.join(name_list[0:-1])
                 else:
                     mod_name = self.default_mod_name
                 object_name = name_list[-1]
@@ -621,7 +379,7 @@ class HtmlWindow(QtGui.QScrollArea):
                     # if not found, search globally for module
                     mod = importlib.import_module(mod_name)                    
                 ob = getattr(mod, object_name)(parent=self, **evaled_attrs)
-                if isinstance(ob, QtGui.QWidget):
+                if isinstance(ob, QtWidgets.QWidget):
                     widget = ob
                 elif hasattr(ob, '_widget'):
                     widget = ob._widget
@@ -660,7 +418,7 @@ class HtmlWindow(QtGui.QScrollArea):
             else:
                 load_error = False
             if load_error:
-                error_box = QtGui.QTextEdit()
+                error_box = QtWidgets.QTextEdit()
                 error_box.setReadOnly(True)
                 palette = QtGui.QPalette()
                 palette.setColor(QtGui.QPalette.Base, QtGui.QColor('red'))
@@ -679,8 +437,8 @@ class HtmlWindow(QtGui.QScrollArea):
             # end this row, insert horizontal line, and start the next row
             self.row_end()
             self.row_begin(element_list, sizer)
-            ob = QtGui.QFrame()
-            ob.setFrameStyle(QtGui.QFrame.HLine|QtGui.QFrame.Sunken)
+            ob = QtWidgets.QFrame()
+            ob.setFrameStyle(QtWidgets.QFrame.HLine|QtWidgets.QFrame.Sunken)
             row_sizer = self.row_get_sizer()
             row_sizer.addWidget(ob, 1, QtCore.Qt.AlignBottom)
             self.row_set_align_and_proportion('left', 100)
@@ -692,7 +450,7 @@ class HtmlWindow(QtGui.QScrollArea):
 
     def row_begin(self, element_list, sizer):
         # start new row
-        row_sizer = QtGui.QHBoxLayout()
+        row_sizer = QtWidgets.QHBoxLayout()
         v_pad, h_pad = self.get_padding(element_list)
         row_sizer.setSpacing(h_pad)
         sizer.addLayout(row_sizer)
@@ -752,7 +510,7 @@ class HtmlWindow(QtGui.QScrollArea):
                 rowspan = int(element.attrib['rowspan'])
             else:
                 rowspan = 1
-            sizer = QtGui.QVBoxLayout()
+            sizer = QtWidgets.QVBoxLayout()
             v_pad, h_pad = self.get_padding(el)
             sizer.setSpacing(v_pad)
             table_sizer.addLayout(sizer, row, col, rowspan, colspan,

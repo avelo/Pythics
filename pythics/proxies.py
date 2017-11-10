@@ -43,13 +43,13 @@ except ImportError:
 def pil_to_rgb(pil_image):
     if (pil_image.mode != 'RGBA'):
         pil_image = pil_image.convert('RGBA')
-    image_data = pil_image.tostring('raw', 'BGRA')
+    image_data = pil_image.tobytes('raw', 'BGRA')
     return image_data, pil_image.size
 
 
 def rgb_to_pil(image_data, size):
     pil_image = PIL.Image.new('RGBA', size)
-    pil_image.fromstring(image_data)
+    pil_image.frombytes(image_data)
     return pil_image
 
 
@@ -180,12 +180,12 @@ class ShellProxy(pythics.libproxy.PartialAutoProxy):
 #
 class SubWindowProxy(dict):
     def _start(self, process):
-        for proxy in self.values():
+        for proxy in list(self.values()):
             if hasattr(proxy, '_start'):
                 proxy._start(process)
 
     def _stop(self):
-        for proxy in self.values():
+        for proxy in list(self.values()):
             if hasattr(proxy, '_stop'):
                 proxy._stop()
 
@@ -497,7 +497,7 @@ class RunButtonProxy(pythics.libproxy.PartialAutoProxy):
         try:
             # get the value returned by yield
             # default to 0.0 if no return value is given
-            interval = self._generator.next() or 0.0
+            interval = next(self._generator) or 0.0
             self._interval_semaphore.acquire()
             self._interval = interval
             self._interval_semaphore.release()
