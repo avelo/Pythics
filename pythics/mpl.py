@@ -49,6 +49,7 @@ except ImportError:
     USES_PYSIDE = False
 
 import matplotlib
+import matplotlib.pyplot as plt
 if USES_PYSIDE:
     matplotlib.rcParams['backend.qt5']='PySide2'
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -114,7 +115,7 @@ class Canvas(pythics.libcontrol.MPLControl):
         self._widget = QtWidgets.QFrame()
         vbox = QtWidgets.QVBoxLayout()
         # plot
-        self.figure = matplotlib.figure.Figure()
+        self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         vbox.addWidget(self.canvas)
         # toolbar
@@ -171,7 +172,7 @@ class Plot2D(pythics.libcontrol.MPLControl):
         # dictionary of plot objects such as lines, points, etc.
         self._items = dict()
         # use modified matplotlib canvas to redraw correctly on resize
-        self._figure = matplotlib.figure.Figure()
+        self._figure = plt.figure()
         self._canvas = PythicsMPLCanvas(self, self._figure)
         self._widget = self._canvas
         self._mpl_widget = self._canvas
@@ -1203,7 +1204,7 @@ class Chart2D(pythics.libcontrol.MPLControl):
         # setup the layout and plot widget
         self._widget = QtWidgets.QFrame()
         self._sizer = QtWidgets.QVBoxLayout()
-        self._figure = matplotlib.figure.Figure()
+        self._figure = plt.figure()
         self._canvas = PythicsMPLCanvas(self, self._figure)
         self._sizer.addWidget(self._canvas)
         self._mpl_widget = self._canvas
